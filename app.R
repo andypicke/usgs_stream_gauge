@@ -11,6 +11,7 @@ library(shiny)
 library(bslib)
 library(dataRetrieval)
 library(DT)
+library(leaflet)
 
 
 
@@ -33,13 +34,15 @@ ui <- page_sidebar(
     # select variable to plot map of
     selectInput(inputId = "wh_state", 
                 label = "State", 
-                choices = state.name)
-  ),
+                choices = state.name),
+    
+    textInput(inputId = "wh_station",label = "Station ID")
+  ), # sidebar
   
   navset_card_underline(
     
     # Leaflet map
-    nav_panel("Plot" ),
+    nav_panel("Plot", leafletOutput("site_map")),
     
     # Data table
     nav_panel("Data Table", DTOutput("station_table")),
@@ -71,9 +74,24 @@ server <- function(input, output) {
                                  parameterCd = "00060" ) # discharge parameter code
   })  
   
+  # make datatable of sites
   output$station_table <- renderDT({
     DT::datatable(station_info() )
     },server = FALSE)
+  
+  
+  # make leaflet map of sites
+  output$site_map <- renderLeaflet({
+    leaflet(data = station_info() ) |>
+      addProviderTiles(provider = providers$CartoDB.Voyager) |>
+      addMarkers(lat = ~dec_lat_va, lng = ~dec_long_va,
+                 popup = paste0(station_info()$station_nm, "<br>", station_info()$site_no ) ,
+                 clusterOptions = markerClusterOptions())
+  })
+  
+  
+  # get data for one site
+  
   
   
 } # SERVER
