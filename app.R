@@ -2,8 +2,8 @@
 #
 # This is a Shiny web application to view USGS stream gauge data
 #
-#
-#
+# andypicke@gmail.com
+# 2024-10-15
 #
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -36,16 +36,18 @@ ui <- page_sidebar(
                 label = "State", 
                 choices = state.name),
     
-    textInput(inputId = "wh_station",label = "Station ID")
+    textInput(inputId = "station_id",label = "Station ID", value = NULL)
   ), # sidebar
   
   navset_card_underline(
     
     # Leaflet map
-    nav_panel("Plot", leafletOutput("site_map")),
+    nav_panel("Site Map", leafletOutput("site_map")),
     
     # Data table
-    nav_panel("Data Table", DTOutput("station_table")),
+    nav_panel("Site Info", DTOutput("station_table")),
+
+    nav_panel("Data Table2", DTOutput("site_table")),
     
     # About
     nav_panel("About", 
@@ -91,8 +93,19 @@ server <- function(input, output) {
   
   
   # get data for one site
+  site_data <- reactive({
+    readNWISuv(siteNumbers = "02479500",#input$station_id,
+                        parameterCd = "00060",
+                        startDate = "2024-09-20",
+                        endDate = "2024-10-05") |>
+    renameNWISColumns()
+  })
   
   
+  # make datatable of site data
+  output$site_table <- renderDT({
+    DT::datatable(site_data() )
+  },server = FALSE)
   
 } # SERVER
 
