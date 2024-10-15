@@ -12,6 +12,7 @@ library(bslib)
 library(dataRetrieval)
 library(DT)
 library(leaflet)
+library(ggplot2)
 
 
 
@@ -47,6 +48,8 @@ ui <- page_sidebar(
     nav_panel("Site Info", DTOutput("station_table")),
 
     nav_panel("Data Table2", DTOutput("site_table")),
+    
+    nav_panel("Plot", plotOutput("ts_plot")),
     
     # About
     nav_panel("About", 
@@ -117,6 +120,11 @@ server <- function(input, output) {
   },server = FALSE)
   
   
+  output$ts_plot <- renderPlot({
+    site_data() |>
+      ggplot(aes(x = dateTime, y = Flow_Inst)) +
+      geom_line()
+  })
   
 } # SERVER
 
