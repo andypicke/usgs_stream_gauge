@@ -105,8 +105,8 @@ server <- function(input, output) {
   site_data <- reactive({
     readNWISuv(siteNumbers = input$station_id,
                         parameterCd = "00060",
-                        startDate = "2024-09-20",
-                        endDate = "2024-10-05") |>
+                        startDate = input$date_range[1],#"2024-09-20",
+                        endDate = input$date_range[2] ) |>
     renameNWISColumns()
   })
   
@@ -115,6 +115,8 @@ server <- function(input, output) {
   output$site_table <- renderDT({
     DT::datatable(site_data() )
   },server = FALSE)
+  
+  
   
 } # SERVER
 
