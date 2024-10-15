@@ -10,8 +10,15 @@
 library(shiny)
 library(bslib)
 library(dataRetrieval)
+library(DT)
 
-# Define UI for application that draws a histogram
+
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Define UI
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 ui <- page_sidebar(
   theme = bs_theme(bootswatch = "simplex"),
   title = "USGS Stream Gauge Viewer",
@@ -19,10 +26,10 @@ ui <- page_sidebar(
   sidebar = sidebar(
     # Date input ; Default value is the date in client's time zone
     dateRangeInput(inputId = "date_range", 
-              label = "Date range To View:", 
-              start = Sys.Date() - 10 , 
-              end = Sys.Date() - 1,
-              max = Sys.Date()),
+                   label = "Date range To View:", 
+                   start = Sys.Date() - 10 , 
+                   end = Sys.Date() - 1,
+                   max = Sys.Date()),
     # select variable to plot map of
     selectInput(inputId = "wh_state", 
                 label = "State", 
@@ -35,7 +42,7 @@ ui <- page_sidebar(
     nav_panel("Plot" ),
     
     # Data table
-    nav_panel("Data Table" ),
+    nav_panel("Data Table", DTOutput("station_table")),
     
     # About
     nav_panel("About", 
@@ -48,11 +55,33 @@ ui <- page_sidebar(
   
 ) # page_fluid
 
-# Define server logic required to draw a histogram
+
+
+
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Define server 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 server <- function(input, output) {
   
+  # get list of stations for specfified state
+  station_info <- reactive({
+    dataRetrieval::whatNWISsites(stateCd = input$wh_state, 
+                                 parameterCd = "00060" ) # discharge parameter code
+  })  
   
-}
+  output$station_table <- renderDT({
+    DT::datatable(station_info() )
+    },server = FALSE)
+  
+  
+} # SERVER
 
+
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Run the application 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 shinyApp(ui = ui, server = server)
