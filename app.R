@@ -36,6 +36,7 @@ ui <- page_sidebar(
     selectInput(inputId = "wh_state", 
                 label = "State", 
                 choices = state.name),
+    # select station to get data for and plot
     selectInput(inputId = "station_id", label = "Station Number", choices = "", selected = NULL, selectize = FALSE  )
   ), # sidebar
   
@@ -54,7 +55,7 @@ ui <- page_sidebar(
     # About
     nav_panel("About", 
               h3("A Shiny App to View stream gauge data",),
-              h5("text")
+              h5("https://github.com/andypicke/usgs_stream_gauge")
     ),
     full_screen = TRUE
   ) #navset_card_underline
@@ -122,9 +123,17 @@ server <- function(input, output) {
   
   
   output$ts_plot <- renderPlot({
+    
+    parameterInfo <- attr(site_data(), "variableInfo")
+    siteInfo <- attr(site_data(), "siteInfo")
+    
+
     site_data() |>
       ggplot(aes(x = dateTime, y = Flow_Inst)) +
-      geom_line()
+      geom_line() +
+      ylab(parameterInfo$variableDescription) +
+      ggtitle(siteInfo$station_nm)
+    
   })
   
 } # SERVER
