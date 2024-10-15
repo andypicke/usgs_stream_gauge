@@ -35,8 +35,7 @@ ui <- page_sidebar(
     selectInput(inputId = "wh_state", 
                 label = "State", 
                 choices = state.name),
-    
-    textInput(inputId = "station_id",label = "Station ID", value = NULL)
+    selectInput(inputId = "station_id", label = "Station Number", choices = "02479500", selected = NULL, selectize = FALSE  )
   ), # sidebar
   
   navset_card_underline(
@@ -70,19 +69,28 @@ ui <- page_sidebar(
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 server <- function(input, output) {
   
-  # get list of stations for specfified state
+  # get list of the stations for chosen state
   station_info <- reactive({
     dataRetrieval::whatNWISsites(stateCd = input$wh_state, 
                                  parameterCd = "00060" ) # discharge parameter code
   })  
   
-  # make datatable of sites
+  # update selectInput choices for station numbers based on state selection
+  observe({
+    updateSelectInput(
+      inputId = "station_id",
+      choices = unique(station_info()$site_no)
+    )
+  })
+  
+  
+  # make datatable of sites for chosen state
   output$station_table <- renderDT({
     DT::datatable(station_info() )
     },server = FALSE)
   
   
-  # make leaflet map of sites
+  # make leaflet map of sites for chosen state
   output$site_map <- renderLeaflet({
     leaflet(data = station_info() ) |>
       addProviderTiles(provider = providers$CartoDB.Voyager) |>
@@ -92,9 +100,10 @@ server <- function(input, output) {
   })
   
   
-  # get data for one site
+  
+  # get data for a selected site
   site_data <- reactive({
-    readNWISuv(siteNumbers = "02479500",#input$station_id,
+    readNWISuv(siteNumbers = input$station_id,
                         parameterCd = "00060",
                         startDate = "2024-09-20",
                         endDate = "2024-10-05") |>
@@ -102,7 +111,7 @@ server <- function(input, output) {
   })
   
   
-  # make datatable of site data
+  # make datatable of site data for selected site
   output$site_table <- renderDT({
     DT::datatable(site_data() )
   },server = FALSE)
