@@ -84,7 +84,7 @@ server <- function(input, output) {
   observe({
     updateSelectInput(
       inputId = "station_id",
-      choices = unique(station_info()$site_no)
+      choices = sort(unique(station_info()$site_no))
     )
   })
   
