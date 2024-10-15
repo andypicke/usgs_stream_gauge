@@ -36,7 +36,7 @@ ui <- page_sidebar(
     selectInput(inputId = "wh_state", 
                 label = "State", 
                 choices = state.name),
-    selectInput(inputId = "station_id", label = "Station Number", choices = "02479500", selected = NULL, selectize = FALSE  )
+    selectInput(inputId = "station_id", label = "Station Number", choices = "", selected = NULL, selectize = FALSE  )
   ), # sidebar
   
   navset_card_underline(
@@ -75,6 +75,7 @@ server <- function(input, output) {
   # get list of the stations for chosen state
   station_info <- reactive({
     dataRetrieval::whatNWISsites(stateCd = input$wh_state, 
+                                 startDt = input$date_range[1],
                                  parameterCd = "00060" ) # discharge parameter code
   })  
   
