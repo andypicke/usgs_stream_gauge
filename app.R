@@ -29,7 +29,7 @@ ui <- page_sidebar(
     # Date input ; Default value is the date in client's time zone
     dateRangeInput(inputId = "date_range", 
                    label = "Date range To View:", 
-                   start = Sys.Date() - 10 , 
+                   start = Sys.Date() - 20 , 
                    end = Sys.Date() - 1,
                    max = Sys.Date()),
     # select variable to plot map of
@@ -55,10 +55,10 @@ ui <- page_sidebar(
     # About
     nav_panel("About", 
               h3("A Shiny App to View stream gauge data",),
-              h5("https://github.com/andypicke/usgs_stream_gauge")
+              h5("https://github.com/andypicke/usgs_stream_gauge_viewer")
     ),
     full_screen = TRUE
-  ) #navset_card_underline
+  ) # navset_card_underline
   
   
 ) # page_fluid
@@ -73,7 +73,7 @@ ui <- page_sidebar(
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 server <- function(input, output) {
   
-  # get list of the stations for chosen state
+  # get list of the stations for chosen state and start date
   station_info <- reactive({
     dataRetrieval::whatNWISsites(stateCd = input$wh_state, 
                                  startDt = input$date_range[1],
@@ -84,7 +84,7 @@ server <- function(input, output) {
   observe({
     updateSelectInput(
       inputId = "station_id",
-      choices = sort(unique(station_info()$site_no))
+      choices = sort(unique(station_info()$station_nm))
     )
   })
   
@@ -108,7 +108,7 @@ server <- function(input, output) {
   
   # get data for a selected site
   site_data <- reactive({
-    readNWISuv(siteNumbers = input$station_id,
+    readNWISuv(siteNumbers = station_info()$site_no[which(station_info()$station_nm == input$station_id)],
                         parameterCd = "00060",
                         startDate = input$date_range[1],#"2024-09-20",
                         endDate = input$date_range[2] ) |>
