@@ -7,6 +7,11 @@
 #
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
+#~~~~~~~~~~~
+# Libraries
+#~~~~~~~~~~~
+
 library(shiny)
 library(bslib)
 library(dataRetrieval)
@@ -26,41 +31,70 @@ ui <- page_sidebar(
   title = "USGS Stream Gauge Viewer",
   
   sidebar = sidebar(
-    # Date input ; Default value is the date in client's time zone
+    # Date range input
     dateRangeInput(inputId = "date_range", 
                    label = "Date range To View:", 
                    start = Sys.Date() - 20 , 
                    end = Sys.Date() - 1,
                    max = Sys.Date()),
-    # select variable to plot map of
+    # select state
     selectInput(inputId = "wh_state", 
                 label = "State", 
                 choices = state.name),
     # select station to get data for and plot
-    selectInput(inputId = "station_id", label = "Station Number", choices = "", selected = NULL, selectize = FALSE  )
+    selectInput(inputId = "station_id", 
+                label = "Station Number", 
+                choices = "", 
+                selected = NULL, 
+                selectize = FALSE  )
   ), # sidebar
   
+  # tabs in main panel
   navset_card_underline(
     
     # Leaflet map
-    nav_panel("Site Map", leafletOutput("site_map")),
+    nav_panel(title = "Site Map",
+              leafletOutput("site_map")
+    ),
+    
+    # timeseries plot from one station
+    nav_panel(title = "Timeseries Plot", 
+              plotOutput("ts_plot")
+    ),
     
     # Data table
-    nav_panel("Site Info", DTOutput("station_table")),
-
-    nav_panel("Data Table2", DTOutput("site_table")),
+    nav_panel(title = "Site Info Table", 
+              DTOutput("station_table")
+    ),
     
-    nav_panel("Plot", plotOutput("ts_plot")),
+    nav_panel(title = "Station Data Table", 
+              DTOutput("site_table")
+    ),
     
-    # About
+    
+    # 
+    # nav_panel("Both Plots",
+    #           layout_column_wrap(
+    #             width = 1,
+    #             card(
+    #               card_header("Plot 1"),
+    #               leafletOutput("site_map2")
+    #             ),
+    #             card(
+    #               card_header("Plot 2"),
+    #               plotOutput("ts_plot")
+    #             )
+    #           )
+    # ),
+    
+    # About tab
     nav_panel("About", 
               h3("A Shiny App to View stream gauge data",),
-              h5("https://github.com/andypicke/usgs_stream_gauge_viewer")
+              h5(a("https://github.com/andypicke/usgs_stream_gauge_viewer")),
+              h5(a("https://andypicke.shinyapps.io/usgs_stream_gauge_viewer/"))
     ),
     full_screen = TRUE
   ) # navset_card_underline
-  
-  
 ) # page_fluid
 
 
@@ -92,7 +126,7 @@ server <- function(input, output) {
   # make datatable of sites for chosen state
   output$station_table <- renderDT({
     DT::datatable(station_info() )
-    },server = FALSE)
+  },server = FALSE)
   
   
   # make leaflet map of sites for chosen state
@@ -104,15 +138,23 @@ server <- function(input, output) {
                  clusterOptions = markerClusterOptions())
   })
   
+  # make leaflet map of sites for chosen state
+  output$site_map2 <- renderLeaflet({
+    leaflet(data = station_info() ) |>
+      addProviderTiles(provider = providers$CartoDB.Voyager) |>
+      addMarkers(lat = ~dec_lat_va, lng = ~dec_long_va,
+                 popup = paste0(station_info()$station_nm, "<br>", station_info()$site_no ) ,
+                 clusterOptions = markerClusterOptions())
+  })
   
   
   # get data for a selected site
   site_data <- reactive({
     readNWISuv(siteNumbers = station_info()$site_no[which(station_info()$station_nm == input$station_id)],
-                        parameterCd = "00060",
-                        startDate = input$date_range[1],#"2024-09-20",
-                        endDate = input$date_range[2] ) |>
-    renameNWISColumns()
+               parameterCd = "00060",
+               startDate = input$date_range[1],#"2024-09-20",
+               endDate = input$date_range[2] ) |>
+      renameNWISColumns()
   })
   
   
@@ -127,7 +169,7 @@ server <- function(input, output) {
     parameterInfo <- attr(site_data(), "variableInfo")
     siteInfo <- attr(site_data(), "siteInfo")
     
-
+    
     site_data() |>
       ggplot(aes(x = dateTime, y = Flow_Inst)) +
       geom_line() +
