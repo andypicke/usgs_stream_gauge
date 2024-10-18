@@ -17,7 +17,8 @@ library(bslib)
 library(dataRetrieval)
 library(DT)
 library(leaflet)
-library(ggplot2)
+#library(ggplot2)
+library(plotly)
 
 
 
@@ -43,7 +44,7 @@ ui <- page_sidebar(
                 choices = state.name),
     # select station to get data for and plot
     selectInput(inputId = "station_id", 
-                label = "Station Number", 
+                label = "Choose Station", 
                 choices = "", 
                 selected = NULL, 
                 selectize = FALSE  )
