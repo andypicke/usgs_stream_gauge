@@ -35,12 +35,13 @@ ui <- page_sidebar(
     # Date range input
     dateRangeInput(inputId = "date_range", 
                    label = "Date range To View:", 
-                   start = Sys.Date() - 20 , 
-                   end = Sys.Date() - 1,
+                   start = "2024-09-20", 
+                   end = "2024-10-10",
                    max = Sys.Date()),
     # select state
     selectInput(inputId = "wh_state", 
-                label = "State", 
+                label = "State",
+                selected = "North Carolina",
                 choices = state.name),
     # select station to get data for and plot
     selectInput(inputId = "station_id", 
@@ -95,9 +96,9 @@ ui <- page_sidebar(
     
     # About tab
     nav_panel("About", 
-              h3("A Shiny App to View stream gauge data",),
-              h5(a("https://github.com/andypicke/usgs_stream_gauge_viewer")),
-              h5(a("https://andypicke.shinyapps.io/usgs_stream_gauge_viewer/"))
+              h3("A Shiny App to View USGS stream gauge data"),
+              h5("View the ", a(href = "https://github.com/andypicke/usgs_stream_gauge_viewer", "source code")),
+              h5("View the ", a(href = "https://andypicke.shinyapps.io/usgs_stream_gauge_viewer/", "shiny app"))
     ),
     full_screen = TRUE
   ) # navset_card_underline
