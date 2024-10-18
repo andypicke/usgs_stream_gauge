@@ -67,7 +67,7 @@ ui <- page_sidebar(
     # Plotly plot
     nav_panel(title = "Timeseries Plot",
               plotlyOutput("ts_plot")
-              ),
+    ),
     
     # Data table
     nav_panel(title = "Site Info Table", 
@@ -132,7 +132,13 @@ server <- function(input, output) {
   
   # make datatable of sites for chosen state
   output$station_table <- renderDT({
-    DT::datatable(station_info() )
+    DT::datatable(station_info(),
+                  rownames = FALSE,
+                  extensions = c("Responsive", "Buttons"),
+                  options = list(
+                    buttons = c("excel", "csv", "pdf"),
+                    dom = "Bftip")
+                  )
   },server = FALSE)
   
   
@@ -167,7 +173,13 @@ server <- function(input, output) {
   
   # make datatable of site data for selected site
   output$site_table <- renderDT({
-    DT::datatable(site_data() )
+    DT::datatable(site_data() ,
+                  rownames = FALSE,
+                  extensions = c("Responsive", "Buttons"),
+                  options = list(
+                    buttons = c("excel", "csv", "pdf"),
+                    dom = "Bftip")
+                  )
   },server = FALSE)
   
   
@@ -192,8 +204,8 @@ server <- function(input, output) {
     
     site_data() |>
       plot_ly(x = ~dateTime, y = ~Flow_Inst, type = "scatter", name = "Discharge") |>
-#      add_lines(x = lubridate::ymd("2024-09-26"), y = range(site_data()$Flow_Inst, na.rm = TRUE),
-#                line = list(color = "red", dash = "dash"), name = "Landfall") |>
+      #      add_lines(x = lubridate::ymd("2024-09-26"), y = range(site_data()$Flow_Inst, na.rm = TRUE),
+      #                line = list(color = "red", dash = "dash"), name = "Landfall") |>
       layout(
         title = siteInfo$station_nm,
         yaxis = list(title = parameterInfo$variableDescription)
